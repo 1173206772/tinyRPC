@@ -78,13 +78,28 @@ std::string LogEvent::toString() {
 
 
 void Logger::pushLog(const std::string& msg) {
-   m_buffer.push(msg);
+//    m_mutex.lock();
+//    m_buffer.push(msg);
+//    m_mutex.unlock();
+    ScopeMutex<Mutex> lock(m_mutex);
+    m_buffer.push(msg);
 }
 void Logger::log() {
-    while(!m_buffer.empty()) {
-        std::string msg = m_buffer.front();
-        m_buffer.pop();
+    // m_mutex.lock();
+    // while(!m_buffer.empty()) {
+    //     std::string msg = m_buffer.front(); 
+    //     m_buffer.pop();
+    //     printf(msg.c_str());
+    // }
+    // m_mutex.unlock();
+    ScopeMutex<Mutex> lock(m_mutex);
+    std::queue<std::string> tmp;
+    m_buffer.swap(tmp);
+    lock.unlock();
 
+    while(!tmp.empty()) {
+        std::string msg = tmp.front();
+        tmp.pop();
         printf(msg.c_str());
     }
 }

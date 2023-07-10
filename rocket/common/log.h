@@ -3,6 +3,7 @@
 #include <string>
 #include <queue>
 #include <memory>
+#include "rocket/common/mutex.h"
 
 namespace rocket {
 
@@ -57,7 +58,9 @@ public:
 
   typedef std::shared_ptr<Logger> s_ptr;
 
-  Logger(LogLevel level): m_set_level(level) {}
+  Logger(LogLevel level): m_set_level(level) {
+  
+  }
 
   static Logger* GetGlobalLogger();
   static void InitGlobalLogger();
@@ -72,6 +75,8 @@ private:
   LogLevel m_set_level;
   std::queue<std::string> m_buffer;
   // m_file_path/m_file_name_yyyymmdd.1
+  
+  Mutex m_mutex;
 
   std::string m_file_name;    // 日志输出文件名字
   std::string m_file_path;    // 日志输出路径
@@ -101,6 +106,7 @@ class LogEvent {
   int32_t m_thread_id;  // 线程号
 
   LogLevel m_level;     //日志级别
+
 
 };
 }
