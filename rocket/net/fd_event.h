@@ -13,6 +13,7 @@ public:
         ERROR_EVENT = EPOLLERR
     };
     FdEvent(int fd);
+    FdEvent();
     ~FdEvent();
 
     std::function<void()> handler(TriggerEvent event_type);

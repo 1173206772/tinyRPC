@@ -4,10 +4,16 @@
 
 namespace rocket {
 
+FdEvent::FdEvent() {
+    memset(&m_listen_events, 0 ,sizeof(m_listen_events));
+}
+
 FdEvent::FdEvent(int fd): m_fd(fd) {
     memset(&m_listen_events, 0, sizeof(m_listen_events));
 
 }
+
+
 FdEvent::~FdEvent() {
 
 }

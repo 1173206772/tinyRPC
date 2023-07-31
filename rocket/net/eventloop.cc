@@ -48,6 +48,11 @@ static thread_local Eventloop* t_current_eventloop = NULL;
 static int g_epoll_max_timeout = 10000;
 static int g_epoll_max_events = 10;
 
+void Eventloop::initTimer() {
+  m_timer = new Timer();
+  addEpollEvent(m_timer);
+}
+
 Eventloop::Eventloop() {
     if(t_current_eventloop != NULL) {
         ERRORLOG("failed to create event loop, this thread has created event loop");
@@ -57,11 +62,13 @@ Eventloop::Eventloop() {
 
     m_epoll_fd = epoll_create(10);
 
+
     if(m_epoll_fd == -1) {
         ERRORLOG("failed to create event loop, epoll_wait error, error info[%d]", errno);
         exit(0); 
     }
 
+    initTimer();
     initWakeUpFdEvent();
     INFOLOG("successd create event loop in thread %d", m_thread_id);
     t_current_eventloop = this;
@@ -187,6 +194,10 @@ void Eventloop::delEpollEvent(FdEvent* event) {
         };
         addTask(cb, true);
     }
+}
+
+void Eventloop::addTimerEvent(TimerEvent::s_ptr event) {
+    m_timer->addTimerEvent(event);
 }
 
 //判断当前线程是不是Loop线程
