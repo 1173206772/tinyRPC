@@ -26,7 +26,7 @@ IOThread::~IOThread() {
   sem_destroy(&m_init_semaphore);
   sem_destroy(&m_start_semaphore);
 
-  pthread_join(m_thread, NULL);
+  pthread_join(m_thread, NULL); //主线程等IO线程结束
 
   if (m_event_loop) {
     delete m_event_loop;

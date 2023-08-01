@@ -12,7 +12,9 @@ Timer::Timer():FdEvent() {
 
 
     //把fd可读事件放到eventloop监听
+    //bind绑定成员函数时需要第一个参数传入this指针
     listen(FdEvent::IN_EVENT, std::bind(&Timer::onTimer, this));
+
 
 }
 
