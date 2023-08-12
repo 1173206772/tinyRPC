@@ -6,7 +6,7 @@ namespace rocket
 
 IOThreadGroup::IOThreadGroup(int size):m_size(size) {
     m_io_thread_groups.resize(m_size);
-    for(size_t i=0; i<m_size; ++i) {
+    for(size_t i=0; (int)i < m_size; ++i) {
         m_io_thread_groups[i] = new IOThread();
     }
 }

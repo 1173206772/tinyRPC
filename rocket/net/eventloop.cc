@@ -20,7 +20,8 @@
     if(rt == -1) {                                               \
         ERRORLOG("failed epoll_ctl when add fd %d, errno=%d, error info=%s", event->getFd(), errno, strerror(errno));   \
         exit(0);                                        \
-    }                                                   \
+    } \
+    m_listen_fds.insert(event->getFd());\
     DEBUGLOG("add event success, fd[%d]", event->getFd()); \
 
 
@@ -37,6 +38,7 @@
         ERRORLOG("failed epoll_ctl when del fd %d, errno=%d, error info=%s", event->getFd(), errno, strerror(errno));   \
         exit(0);                                        \
     }                                                   \
+    m_listen_fds.erase(event->getFd());\
     DEBUGLOG("del event success, fd[%d]", event->getFd()); \
 
 namespace rocket {
@@ -105,6 +107,8 @@ void Eventloop::initWakeUpFdEvent() {
 }
 
 void Eventloop::loop() {
+    //DEBUGLOG("loop...............");
+    m_is_looping = true;
     while(!m_stop_flag) {
         ScopeMutex<Mutex> lock(m_mutex);
         std::queue<std::function<void()>> tmp_tasks;
@@ -145,6 +149,17 @@ void Eventloop::loop() {
                     DEBUGLOG("fd %d trigger EPOLLOUT event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::OUT_EVENT)); 
                 }
+
+                // EPOLLHUP EPOLLERR
+                if (trigger_event.events & EPOLLERR) {
+                    DEBUGLOG("fd %d trigger EPOLLERROR event", fd_event->getFd())
+                    // 删除出错的套接字
+                    delEpollEvent(fd_event);
+                    if (fd_event->handler(FdEvent::ERROR_EVENT) != nullptr) {
+                        DEBUGLOG("fd %d add error callback", fd_event->getFd())
+                        addTask(fd_event->handler(FdEvent::OUT_EVENT));
+                    }
+                }
             }
         }
 
@@ -160,6 +175,7 @@ void Eventloop::dealWakeup() {
 }
 void Eventloop::stop() {
     m_stop_flag = true;
+    wakeup();
 }
 
 //跨线程修改事件，如主从Reactor中,主线程调用io线程的addEpollEvent,
@@ -204,5 +220,18 @@ void Eventloop::addTimerEvent(TimerEvent::s_ptr event) {
 bool Eventloop::isInLoopThread() {
     return getThreadId() == m_thread_id; 
 }
+bool Eventloop::isLooping() {
+    return m_is_looping; 
+}
+
+Eventloop* Eventloop::GetCurrentEventLoop() {
+    if(t_current_eventloop != NULL) {
+        return t_current_eventloop;
+    }
+
+    t_current_eventloop = new Eventloop();
+    return t_current_eventloop;
+}
+
 
 }

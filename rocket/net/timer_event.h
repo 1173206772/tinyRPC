@@ -22,6 +22,7 @@ public:
     bool is_repeated() const { return m_is_repeated;}
     std::function<void()> getCallBack() const { return m_task;}
     void resetArriveTime();
+
 private:
     int64_t m_arrive_time; //ms
     int64_t m_interval; //ms

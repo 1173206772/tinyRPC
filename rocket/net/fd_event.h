@@ -12,13 +12,14 @@ public:
         OUT_EVENT = EPOLLOUT,
         ERROR_EVENT = EPOLLERR
     };
+
     FdEvent(int fd);
     FdEvent();
     ~FdEvent();
 
     std::function<void()> handler(TriggerEvent event_type);
 
-    void listen(TriggerEvent event_type, std::function<void()> callback);
+    void listen(TriggerEvent event_type, std::function<void()> callback, std::function<void()> error_callback = nullptr);
 
     int getFd() const {
         return m_fd;
@@ -28,6 +29,9 @@ public:
         return m_listen_events;
     }
 
+    void setNonBlock();
+
+    void cancel(TriggerEvent event_type);
     
 protected:
     int m_fd{-1};
@@ -36,6 +40,7 @@ protected:
     
     std::function<void()> m_read_callback {nullptr};
     std::function<void()> m_write_callback {nullptr};
+    std::function<void()> m_error_callback {nullptr};
 };
 }
 
